@@ -176,8 +176,8 @@ def fill_time_gaps(df, gap_indices):
         if df['Local_Date_Time'].dtype != 'datetime64[ns]':
             df['Local_Date_Time'] = pd.to_datetime(df['Local_Date_Time'])
 
-        # Iterate through gap indices and insert rows to fill the gap
-        for gap_index in gap_indices:
+        # Iterate through gap indices in reverse order and insert rows to fill the gap
+        for gap_index in reversed(gap_indices):
             start_time = df.at[gap_index - 1, 'Local_Date_Time']
             end_time = df.at[gap_index, 'Local_Date_Time']
             num_inserts = int((end_time - start_time) / pd.Timedelta(minutes=1)) - 1
