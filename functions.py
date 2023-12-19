@@ -1,5 +1,5 @@
 from io import StringIO
-
+from datetime import datetime, timedelta
 import pandas as pd
 
 
@@ -190,3 +190,105 @@ def fill_time_gaps(df, gap_indices):
         return df
     else:
         return "Column 'Local_Date_Time' not found in the DataFrame."
+
+def round_measurement_interval(measurement_interval):
+    seconds = measurement_interval.total_seconds()
+
+    if seconds < 2:
+        return pd.Timedelta(seconds=1)
+    elif seconds < 10:
+        return pd.Timedelta(seconds=2)
+    elif seconds < 60:
+        return pd.Timedelta(seconds=10)
+    elif seconds < 120:
+        return pd.Timedelta(seconds=60)
+    elif seconds < 300:
+        return pd.Timedelta(seconds=120)
+    elif seconds < 600:
+        return pd.Timedelta(seconds=300)
+    elif seconds < 3600:
+        return pd.Timedelta(seconds=600)
+    elif seconds < 10800:
+        return pd.Timedelta(seconds=3600)
+    else:
+        return pd.Timedelta(seconds=10800)
+
+def get_user_datetime_input():
+    """
+    Asks the user to enter a Date and time value in YYYY-MM-DD HH:MM:SS format.
+
+    Returns:
+        datetime: Parsed datetime object if input is valid.
+        None: If input is invalid.
+    """
+    user_input = input("Enter a Date and time value, where plotting begins (YYYY-MM-DD HH:MM:SS): ")
+
+    try:
+        entered_datetime = datetime.strptime(user_input, '%Y-%m-%d %H:%M:%S')
+        return entered_datetime
+    except ValueError:
+        print("Invalid date format. Please use YYYY-MM-DD HH:MM:SS.")
+        return None
+
+def get_user_timespan_input():
+    """
+    Asks the user to enter a timespan in HH:MM:SS format.
+
+
+    Returns:
+        timedelta: Parsed timedelta object if input is valid.
+        None: If input is invalid.
+    """
+    user_input = input("Enter a timespan for the plot (HH:MM:SS): ")
+
+    try:
+        # Parse the user input as a timedelta object
+        parsed_timespan = datetime.strptime(user_input, '%H:%M:%S') - datetime.strptime('00:00:00', '%H:%M:%S')
+        return parsed_timespan
+    except ValueError:
+        print("Invalid timespan format. Please use HH:MM:SS.")
+        return None
+
+
+def find_closest_index(df, user_datetime):
+    # Convert the 'Local_Date_Time' column to datetime if not already
+    df['Local_Date_Time'] = pd.to_datetime(df['Local_Date_Time'])
+
+    # Calculate the time difference between user_datetime and each row in the DataFrame
+    time_diff = abs(df['Local_Date_Time'] - user_datetime)
+
+    # Find the index of the minimum time difference
+    closest_index = time_diff.idxmin()
+
+    return closest_index
+
+
+def find_index_after_timespan(df, start_index, user_timespan):
+    # Ensure the 'Local_Date_Time' column is in datetime format
+    df['Local_Date_Time'] = pd.to_datetime(df['Local_Date_Time'])
+
+    # Get the datetime value of the starting index
+    start_datetime = df.loc[start_index, 'Local_Date_Time']
+
+    # Calculate the datetime after the user_timespan
+    end_datetime = start_datetime + user_timespan
+
+    # Find the index of the closest row to the end_datetime
+    end_index = (df['Local_Date_Time'] - end_datetime).abs().idxmin()
+
+    return end_index
+
+
+def extract_data_between_indices(df, start_index, end_index):
+    # Ensure the 'Local_Date_Time' column is in datetime format
+    df['Local_Date_Time'] = pd.to_datetime(df['Local_Date_Time'])
+
+    # Filter the DataFrame between the given indices
+    selected_data = df.loc[start_index:end_index]
+
+    # Extract the date stamp values, temperature values, and RH values
+    List_of_datestamps_for_graph = selected_data['Local_Date_Time'].tolist()
+    List_of_T_for_graph = selected_data['T'].tolist()
+    List_of_RH_for_graph = selected_data['RH'].tolist()
+
+    return List_of_datestamps_for_graph, List_of_T_for_graph, List_of_RH_for_graph
