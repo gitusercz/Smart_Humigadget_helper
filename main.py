@@ -4,11 +4,11 @@ import logging
 import pandas as pd
 
 import functions
-from graph_fn import plot_temperature_graph
+from graph_fn import plot_temperature_graph, plot_temperature_and_rh_graph
 
 # ============= Logging setup ===========
 logging.basicConfig(filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
-log_file_path = "experiment.edf"  # Replace with the actual file path
+log_file_path = "Sensirion_MyAmbience_Smart_Humigadget_9CEC_2023-01-05T09-26-36.210951.edf"  # Replace with the actual file path
 
 print("  SENSIRION HUMIGADGET HELPER\n==============================\n")
 df = functions.read_logfile(log_file_path)
@@ -50,8 +50,8 @@ lastife = functions.find_index_after_timespan(df_filled_gaps, functions.find_clo
 # print(startife, lastife)
 List_of_datestamps, List_of_T, List_of_RH = functions.extract_data_between_indices(df_filled_gaps,startife, lastife)
 
-# print(List_of_datestamps)
-# print(List_of_T)
-# print(List_of_RH)
+# plot_temperature_graph(List_of_datestamps, List_of_T, "First graph")
+include_rh = input("Do you want to include RH on the graph? (Y/N): ")
+title = input("What should be the graph title? Please enter: ")
 
-plot_temperature_graph(List_of_datestamps, List_of_T, "First graph")
+plot_temperature_and_rh_graph(List_of_datestamps, List_of_T, List_of_RH, title, include_rh)
