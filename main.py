@@ -8,9 +8,11 @@ from graph_fn import plot_temperature_graph, plot_temperature_and_rh_graph
 
 # ============= Logging setup ===========
 logging.basicConfig(filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
-log_file_path = "Sensirion_MyAmbience_Smart_Humigadget_9CEC_2023-01-05T09-26-36.210951.edf"  # Replace with the actual file path
-
+# log_file_path = functions.extract_edf_from_zip()
+# log_file_path = "C:\Temp\Sensirion measures\Kivittem, majd behoztam\Sensirion_MyAmbience_Smart_Humigadget_n_a_2024-01-22T13-41-44.075448.edf" Beállási idők
+log_file_path = 'C:\Temp\Sensirion measures\\tobbnapos\\roviditett.edf'
 print("  SENSIRION HUMIGADGET HELPER\n==============================\n")
+print(log_file_path)
 df = functions.read_logfile(log_file_path)
 earliest_datestamp = functions.get_earliest_datestamp(df)
 print("Earliest Datestamp: ", earliest_datestamp)
@@ -23,8 +25,7 @@ measurement_interval = functions.calculate_measurement_interval(df)
 # print("Average Measurement Interval:", measurement_interval)
 estimated_meas_interval = functions.round_measurement_interval(measurement_interval)
 print("Estimated Measurement interval: ", estimated_meas_interval)
-#df_with_time_diffs = functions.add_time_diffs_column(df)
-
+print("Filling measure gaps. Please wait...")
 
 
 gap_indices = functions.find_time_gaps(df, max_time_diff=estimated_meas_interval)

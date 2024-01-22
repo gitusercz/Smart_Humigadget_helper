@@ -1,7 +1,9 @@
 from io import StringIO
 from datetime import datetime, timedelta
 import pandas as pd
-
+import os
+import zipfile
+import fnmatch
 
 def read_logfile(file_path):
     # Read the entire file content
@@ -229,11 +231,29 @@ def get_user_datetime_input():
     except ValueError:
         print("Invalid date format. Please use YYYY-MM-DD HH:MM:SS.")
         return None
+# befor switching to the next method
+# def get_user_timespan_input():
+#     """
+#     Asks the user to enter a timespan in HH:MM:SS format.
+#
+#
+#     Returns:
+#         timedelta: Parsed timedelta object if input is valid.
+#         None: If input is invalid.
+#     """
+#     user_input = input("Enter a timespan for the plot (HH:MM:SS): ")
+#
+#     try:
+#         # Parse the user input as a timedelta object
+#         parsed_timespan = datetime.strptime(user_input, '%H:%M:%S') - datetime.strptime('00:00:00', '%H:%M:%S')
+#         return parsed_timespan
+#     except ValueError:
+#         print("Invalid timespan format. Please use HH:MM:SS.")
+#         return None
 
 def get_user_timespan_input():
     """
     Asks the user to enter a timespan in HH:MM:SS format.
-
 
     Returns:
         timedelta: Parsed timedelta object if input is valid.
@@ -242,10 +262,14 @@ def get_user_timespan_input():
     user_input = input("Enter a timespan for the plot (HH:MM:SS): ")
 
     try:
-        # Parse the user input as a timedelta object
-        parsed_timespan = datetime.strptime(user_input, '%H:%M:%S') - datetime.strptime('00:00:00', '%H:%M:%S')
+        # Manually parse the user input
+        hours, minutes, seconds = map(int, user_input.split(':'))
+        if hours < 0 or minutes < 0 or minutes >= 60 or seconds < 0 or seconds >= 60:
+            raise ValueError
+
+        parsed_timespan = timedelta(hours=hours, minutes=minutes, seconds=seconds)
         return parsed_timespan
-    except ValueError:
+    except (ValueError, IndexError):
         print("Invalid timespan format. Please use HH:MM:SS.")
         return None
 
@@ -292,3 +316,35 @@ def extract_data_between_indices(df, start_index, end_index):
     List_of_RH_for_graph = selected_data['RH'].tolist()
 
     return List_of_datestamps_for_graph, List_of_T_for_graph, List_of_RH_for_graph
+
+def extract_edf_from_zip(directory='.'):
+    # Get the list of files in the specified directory
+    files = os.listdir(directory)
+
+    # Filter for zip files
+    zip_files = [f for f in files if fnmatch.fnmatch(f, '*.zip')]
+
+    # Case: No zip file found
+    if not zip_files:
+        return "nozipfound"
+
+    # Case: More than one zip file found
+    if len(zip_files) > 1:
+        return "morethanonezipfound"
+
+    # Case: Extract the single zip file
+    zip_file_path = os.path.join(directory, zip_files[0])
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        # Get the list of files inside the zip
+        zip_contents = zip_ref.namelist()
+
+        # Filter for edf files
+        edf_files = [f for f in zip_contents if fnmatch.fnmatch(f, '*.edf')]
+
+        # Case: No edf file found inside the zip
+        if not edf_files:
+            return "incorrectzipfound"
+
+        # Case: Extract the edf file and return its name with extension
+        zip_ref.extract(edf_files[0], directory)
+        return edf_files[0]
