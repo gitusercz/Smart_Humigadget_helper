@@ -6,6 +6,10 @@ import pandas as pd
 import functions
 from graph_fn import plot_temperature_graph, plot_temperature_and_rh_graph
 
+# ============= Defining variables for global use ===========
+
+# ===========================================================
+
 # ============= Logging setup ===========
 logging.basicConfig(filename='app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 # log_file_path = functions.extract_edf_from_zip()
